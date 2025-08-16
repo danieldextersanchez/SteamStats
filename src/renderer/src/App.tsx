@@ -24,13 +24,16 @@ function App(): React.JSX.Element {
       "personastateflags": number
   }
   const [playerData, setPlayerData] = useState<steamRes | null>(null);
+  const [gameList,setGameList] = useState({})
 
   useEffect(() => {
     (window as any).electronAPI.onSteamAuth((player_data : steamRes) => {
       setPlayerData(player_data);
     });
+    (window as any).electronAPI.onGetGames((game_list) => {
+      setGameList(game_list);
+    });
   }, []);
-
   return (
     <>
       <div>{playerData ? playerData.personaname : "playerData.personaname"}</div>
@@ -38,10 +41,15 @@ function App(): React.JSX.Element {
         <div className="action">
           <a target="_blank" rel="noreferrer" onClick={()=>{
             ipcHandle()
-            }}>
-            Steam Login
-          </a>
+            }}>Steam Loginn</a>
         </div>
+        <button onClick={()=>{
+          let steamid = playerData?.steamid;
+          alert(steamid)
+          window.electron.ipcRenderer.send("getGames", { steamid });
+        }
+        }>Get Games</button>
+        {JSON.stringify(gameList)}
       <Versions></Versions>
     </>
   )

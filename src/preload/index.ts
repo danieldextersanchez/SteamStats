@@ -23,4 +23,5 @@ if (process.contextIsolated) {
 
 contextBridge.exposeInMainWorld("electronAPI", {
   onSteamAuth: (callback) => ipcRenderer.on("steam-auth-success", (_, player_data) => callback(player_data)),
+  onGetGames:  (callback) => ipcRenderer.on("get-games-success", (_, game_list) => callback(game_list))
 });

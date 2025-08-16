@@ -111,8 +111,6 @@ app.whenReady().then(() => {
     steamLoginUrl.searchParams.set("openid.realm", "http://localhost:3000/");
     steamLoginUrl.searchParams.set("openid.identity", "http://specs.openid.net/auth/2.0/identifier_select");
     steamLoginUrl.searchParams.set("openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select");
-
-    
     const loginWindow = new BrowserWindow({
       width: 500,
       height: 700,
@@ -123,6 +121,20 @@ app.whenReady().then(() => {
     loginWindow.loadURL(steamLoginUrl.toString());
     return loginWindow;
   })
+
+  ipcMain.on("getGames",async (event, args)=>{
+    const { steamid } = args;
+    console.log(args)
+    const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.apiKey}&steamid=${steamid}&include_appinfo=1&include_played_free_games=1&include_purchase_date=1&format=json`
+    console.log(url)
+    let req = await fetch(url)
+    if(req.status != 200){
+      return
+    }
+    let res = await req.json();
+    mainWindow.webContents.send("get-games-success", res);
+  })
+  
   
 
   createWindow()
