@@ -25,6 +25,15 @@ function createWindow(): void {
       sandbox: false
     }
   })
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+  // Remove CSP header entirely
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders
+        // No Content-Security-Policy header
+      }
+    });
+  });
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -138,7 +147,6 @@ app.whenReady().then(() => {
   
 
   createWindow()
-
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.

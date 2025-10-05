@@ -1,30 +1,15 @@
-import Versions from './components/Versions'
+import OwnedGames from './components/owned_games';
 import electronLogo from './assets/electron.svg'
 import { useEffect, useState } from "react";
+import list from './interface/owned_games';
+import steamRes from './interface/player_info';
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void =>{ 
      window.electron.ipcRenderer.send('ping')
   }
-  interface steamRes{
-      "steamid": string,
-      "communityvisibilitystate": number,
-      "profilestate": number,
-      "personaname": ":(",
-      "commentpermission": number,
-      "profileurl": string,
-      "avatar": string,
-      "avatarmedium": string,
-      "avatarfull": string,
-      "avatarhash": string,
-      "lastlogoff": number,
-      "personastate": number,
-      "primaryclanid": "103582791434277245",
-      "timecreated": number,
-      "personastateflags": number
-  }
   const [playerData, setPlayerData] = useState<steamRes | null>(null);
-  const [gameList,setGameList] = useState({})
+  const [gameList, setGameList] = useState<list>({});
 
   useEffect(() => {
     (window as any).electronAPI.onSteamAuth((player_data : steamRes) => {
@@ -34,24 +19,27 @@ function App(): React.JSX.Element {
       setGameList(game_list);
     });
   }, []);
+  useEffect(() => { 
+    console.log(gameList)
+  },[gameList])
   return (
-    <>
+    <main>
       <div>{playerData ? playerData.personaname : "playerData.personaname"}</div>
         <img alt="logo"className="logo"src={playerData?.avatarfull || electronLogo}/>
-        <div className="action">
+        {!playerData && (
+          <div className="action">
           <a target="_blank" rel="noreferrer" onClick={()=>{
             ipcHandle()
-            }}>Steam Loginn</a>
+            }}>Steam Login</a>
         </div>
+        )}
         <button onClick={()=>{
           let steamid = playerData?.steamid;
-          alert(steamid)
           window.electron.ipcRenderer.send("getGames", { steamid });
         }
         }>Get Games</button>
-        {JSON.stringify(gameList)}
-      <Versions></Versions>
-    </>
+        <OwnedGames {...gameList}/>
+    </main>
   )
 }
 
