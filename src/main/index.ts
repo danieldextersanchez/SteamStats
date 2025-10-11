@@ -15,8 +15,8 @@ let mainWindow
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 800,
+    height: 600,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -25,6 +25,7 @@ function createWindow(): void {
       sandbox: false
     }
   })
+  mainWindow.maximize();
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
   // Remove CSP header entirely
     callback({
@@ -86,7 +87,7 @@ app.whenReady().then(() => {
         const steamId = claimedId.match(/\d+$/)[0];
         let steam_req = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${process.env.apiKey}&steamids=${steamId}`);
         if(steam_req.status != 200){
-          res.send("Login failed.");
+          res.send("Login failed.",JSON.stringify(result));
         }
         let steam_res = await steam_req.json();
         let player_data = steam_res.response.players[0]
@@ -103,7 +104,7 @@ app.whenReady().then(() => {
         `);
         // 👉 Here you can call Steam Web API with steamId + API key
       } else {
-        res.send("Login failed.");
+        res.send("Login failed.",JSON.stringify(result));
       }
     });
   });
@@ -132,8 +133,8 @@ app.whenReady().then(() => {
   })
 
   ipcMain.on("getGames",async (event, args)=>{
+    event.preventDefault();
     const { steamid } = args;
-    console.log("args",args)
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.apiKey}&steamid=${steamid}&include_appinfo=1&include_played_free_games=1&include_purchase_date=1&format=json`
     console.log(url)
     let req = await fetch(url)
@@ -143,13 +144,28 @@ app.whenReady().then(() => {
       return
     }
     let res = await req.json();
-    console.log(res.response.games)
     mainWindow.webContents.send("get-games-success", res);
+  })
+
+  ipcMain.handle("getDotaHistory", async(event,args) => {
+    event.preventDefault();
+    const { steamid } = args;
+    const url = `https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=${process.env.apiKey}&account_id=${steamid}`;
+    console.log(url)
+    let req = await fetch(url)
+    if(req.status != 200){
+      console.log("Failed to fetch game history")
+      console.log(await req.text())
+      return
+    }
+    let res = await req.json();
+    return res;
   })
   
   
 
   createWindow()
+  
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.

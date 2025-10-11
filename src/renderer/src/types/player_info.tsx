@@ -1,8 +1,8 @@
 export default interface steamRes{
-      "steamid": string,
+      "steamid": number,
       "communityvisibilitystate": number,
       "profilestate": number,
-      "personaname": ":(",
+      "personaname": string,
       "commentpermission": number,
       "profileurl": string,
       "avatar": string,
@@ -11,7 +11,8 @@ export default interface steamRes{
       "avatarhash": string,
       "lastlogoff": number,
       "personastate": number,
-      "primaryclanid": "103582791434277245",
+      "primaryclanid": string,
       "timecreated": number,
-      "personastateflags": number
+      "personastateflags": number,
+      "account_id": number
 }

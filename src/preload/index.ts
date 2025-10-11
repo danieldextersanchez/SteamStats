@@ -1,5 +1,6 @@
 import { contextBridge,ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { on } from 'events'
 
 // Custom APIs for renderer
 const api = {}
@@ -23,5 +24,6 @@ if (process.contextIsolated) {
 
 contextBridge.exposeInMainWorld("electronAPI", {
   onSteamAuth: (callback) => ipcRenderer.on("steam-auth-success", (_, player_data) => callback(player_data)),
-  onGetGames:  (callback) => ipcRenderer.on("get-games-success", (_, game_list) => callback(game_list))
+  onGetGames:  (callback) => ipcRenderer.on("get-games-success", (_, game_list) => callback(game_list)),
+  getDotaHistory: (args) => ipcRenderer.invoke("getDotaHistory", args)
 });

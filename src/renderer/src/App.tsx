@@ -1,29 +1,15 @@
 import OwnedGames from './components/owned_games';
 import electronLogo from './assets/electron.svg'
-import { useEffect, useState, createContext, useContext, ReactNode } from "react";
-import list from './interface/owned_games';
-import steamRes from './interface/player_info';
-
-interface PlayerContextType {
-  playerData: steamRes | null;
-  setPlayerData: React.Dispatch<React.SetStateAction<steamRes | null>>;
-}
-const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
-
-function PlayerProvider({ children }: { children: ReactNode }) {
-  const [playerData, setPlayerData] = useState<steamRes | null>(null);
-  return (
-    <PlayerContext.Provider value={{ playerData, setPlayerData }}>
-      {children}
-    </PlayerContext.Provider>
-  );
-}
-
-function usePlayer() {
-  const context = useContext(PlayerContext);
-  if (!context) throw new Error("usePlayer must be used within a PlayerProvider");
-  return context;
-}
+import { useEffect, useState } from "react";
+import list from './types/owned_games';
+import steamRes from './types/player_info';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
+import { usePlayer, PlayerProvider } from './store/playerContext';
 
 function App(): React.JSX.Element {
   const [gameList, setGameList] = useState<list>({});
@@ -57,29 +43,54 @@ function App(): React.JSX.Element {
   }, [gameList]);
 
   return (
-    <main>
-      <div>{playerData ? playerData.personaname : "playerData.personaname"}</div>
-      <img alt="logo" className="logo" src={playerData?.avatarfull || electronLogo} />
-      {!playerData ? (
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={login}>
-            Steam Login
-          </a>
-        </div>
-      ) : (
-        <button onClick={logout}>
-          Logout
-        </button>
-      )}
-      <button onClick={() => {
-        let steamid = playerData?.steamid;
-        console.log(steamid)
-        window.electron.ipcRenderer.send("getGames", { steamid });
-      }}>
-        Get Games
-      </button>
-      <OwnedGames {...gameList} />
-    </main>
+    <Container maxWidth="sm" sx={{ mt: 6 }}>
+      <Paper elevation={4} sx={{ p: 4, borderRadius: 3, bgcolor: "#1b2838" }}>
+        <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+          <Avatar
+            alt="logo"
+            src={playerData?.avatarfull || electronLogo}
+            sx={{ width: 80, height: 80, mb: 1 }}
+          />
+          <Typography variant="h5" color="white" gutterBottom>
+            {playerData ? playerData.personaname : "SteamStats"}
+          </Typography>
+          {!playerData ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={login}
+              sx={{ width: "100%" }}
+            >
+              Steam Login
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={logout}
+              sx={{ width: "100%" }}
+            >
+              Logout
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => {
+              let steamid = playerData?.steamid;
+              window.electron.ipcRenderer.send("getGames", { steamid });
+            }}
+            sx={{ width: "100%" }}
+            disabled={!playerData}
+          >
+            Get Games
+          </Button>
+          <Box width="100%">
+            <OwnedGames {...gameList} />
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 }
 
