@@ -9,8 +9,7 @@ import {
   ListItemText,
   Avatar,
   Stack,
-  Box,
-  Chip,
+  Box
 } from '@mui/material';
 import DotaMatchListProps from '../types/dota_match';
 import { usePlayer } from '@renderer/store/playerContext';
@@ -51,7 +50,7 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
         </Typography>
 
         <List disablePadding>
-          {matches.map((match, index) => {
+          {matches.map((match) => {
             let my_hero_id = 0;
             for(let i=0; i<match.players.length; i++){
                 if(match.players[i].account_id == account_id){
