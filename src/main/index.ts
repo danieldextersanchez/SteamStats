@@ -112,7 +112,7 @@ app.whenReady().then(() => {
   });
 
   // IPC test
-  ipcMain.on('ping', () => {
+  ipcMain.on('login', () => {
     const steamLoginUrl = new URL("https://steamcommunity.com/openid/login");
     steamLoginUrl.searchParams.set("openid.ns", "http://specs.openid.net/auth/2.0");
     steamLoginUrl.searchParams.set("openid.mode", "checkid_setup");
@@ -133,14 +133,17 @@ app.whenReady().then(() => {
 
   ipcMain.on("getGames",async (event, args)=>{
     const { steamid } = args;
-    console.log(args)
+    console.log("args",args)
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.apiKey}&steamid=${steamid}&include_appinfo=1&include_played_free_games=1&include_purchase_date=1&format=json`
     console.log(url)
     let req = await fetch(url)
     if(req.status != 200){
+      console.log("Failed to fetch games")
+      console.log(await req.text())
       return
     }
     let res = await req.json();
+    console.log(res.response.games)
     mainWindow.webContents.send("get-games-success", res);
   })
   
