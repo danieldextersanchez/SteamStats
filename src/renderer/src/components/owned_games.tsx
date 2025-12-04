@@ -29,6 +29,9 @@ const OwnedGames: React.FC<list> = ({ response }) => {
                     setOpen(true);
                 });
                 break;
+            default:
+                setModalContent(<div>{<h1>{game.name}</h1>}<br /><label>Last played: {new Date(game.rtime_last_played * 1000).toLocaleString()}</label></div>);
+                setOpen(true);
         }
     }
 
@@ -49,7 +52,7 @@ const OwnedGames: React.FC<list> = ({ response }) => {
             <Button onClick={() => setOpen(false)}>Close</Button>
         </DialogActions>
     </Dialog>
-    <List component="nav" sx={{ width: '100%', maxWidth: 360, maxHeight: 300, overflowY: 'auto' }}>
+    <List component="nav" sx={{  overflowY: 'auto',height: '60vh', bgcolor: '#1b2838',borderRadius:2 }}>
         {response?.games?.map((game) => {
         return <ListItem key={game.appid}>
             <ListItemAvatar>

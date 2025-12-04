@@ -43,8 +43,8 @@ function App(): React.JSX.Element {
   }, [gameList]);
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
-      <Paper elevation={4} sx={{ p: 4, borderRadius: 3, bgcolor: "#1b2838" }}>
+    <Container maxWidth="xl" sx={{ width:"100vw",height:"100vh" }}>
+      <Paper elevation={4} sx={{ p: 10, borderRadius: 3, bgcolor: "#1b2838",width:"100%" }}>
         <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
           <Avatar
             alt="logo"
@@ -86,7 +86,9 @@ function App(): React.JSX.Element {
             Get Games
           </Button>
           <Box width="100%">
+            <div  style={{ marginTop: 16, marginLeft: "auto", marginRight: "auto",border:"1px solid #333",borderRadius:8,padding:16,backgroundColor:"#2a475e" }}>
             <OwnedGames {...gameList} />
+            </div>
           </Box>
         </Box>
       </Paper>

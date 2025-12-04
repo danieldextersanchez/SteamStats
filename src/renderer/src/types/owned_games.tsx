@@ -9,4 +9,5 @@ export interface Game {
     name: string;
     img_icon_url: string;
     playtime_forever: string;
+    rtime_last_played : number;
 }
