@@ -1,11 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain,dialog  } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import 'dotenv/config'
 import express from "express";
 import openid from "openid";
-
+import fs from 'fs';
+import path from 'path';
 
 let currentUser = "";
 ipcMain.handle("auth:get-user", () => {
@@ -82,7 +83,6 @@ app.whenReady().then(() => {
     relyingParty.verifyAssertion(req, async(err, result) => {
       if (err) return res.send("Login failed: " + err);
       if (result.authenticated) {
-        // Extract SteamID64 from claimed_id
         const claimedId = result.claimedIdentifier;
         const steamId = claimedId.match(/\d+$/)[0];
         let steam_req = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${process.env.apiKey}&steamids=${steamId}`);
@@ -102,7 +102,6 @@ app.whenReady().then(() => {
             </body>
           </html>
         `);
-        // 👉 Here you can call Steam Web API with steamId + API key
       } else {
         res.send("Login failed.",JSON.stringify(result));
       }
@@ -113,7 +112,50 @@ app.whenReady().then(() => {
   });
 
   // IPC test
-  ipcMain.on('login', () => {
+  ipcMain.on('login', async () => {
+    if(process.env.apiKey == undefined){
+      await dialog.showMessageBox({
+        type: "info",
+        buttons: ["OK"],
+        title: "Information",
+        message: "API Key not set. You are being redirected to the Steam API Key page to get one.",
+      });
+      const apiKeyWindow = new BrowserWindow({
+        width: 500,
+        height: 700,
+        webPreferences: {
+          nodeIntegration: true
+        }
+      })
+      apiKeyWindow.loadURL("https://steamcommunity.com/dev/apikey");
+      apiKeyWindow.webContents.on('did-finish-load', async () => {
+        try {
+          const key = await apiKeyWindow.webContents.executeJavaScript(`
+            document.querySelector('#bodyContents_ex').innerText
+          `); 
+          let key_div_contents = key.split('\n');
+          key_div_contents.forEach(line => {
+            if(line.includes("Key:")){
+              let apiKey = line.replace("Key: ","").trim();
+              console.log(apiKey)
+              apiKeyWindow.close();
+              const envPath = path.join(process.cwd(), '.env');
+              console.log(envPath);
+              fs.writeFileSync(envPath, `apiKey=${apiKey}\n`, { encoding: 'utf8' });
+              process.env.apiKey = apiKey; 
+            }
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      });
+      return dialog.showMessageBox({
+        type: "info",
+        buttons: ["OK"],
+        title: "Information",
+        message: "API Key retrieved. Please restart the login again.",
+      });
+    }
     const steamLoginUrl = new URL("https://steamcommunity.com/openid/login");
     steamLoginUrl.searchParams.set("openid.ns", "http://specs.openid.net/auth/2.0");
     steamLoginUrl.searchParams.set("openid.mode", "checkid_setup");
@@ -142,7 +184,7 @@ app.whenReady().then(() => {
       console.log("Failed to fetch games")
       console.log(await req.text())
       return
-    }
+    } 
     let res = await req.json();
     mainWindow.webContents.send("get-games-success", res);
   })
