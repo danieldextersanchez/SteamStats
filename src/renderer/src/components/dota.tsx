@@ -40,7 +40,7 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
   };
-  console.log(matches);
+  
   const account_id = playerData?.steamid ? steamIdToAccountId(playerData.steamid) : playerData?.steamid;
   return (
     <Card sx={{ borderRadius: 3, boxShadow: 3, overflow: 'hidden' }}>
@@ -57,6 +57,13 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
                     my_hero_id = match.players[i].hero_id;
                 }
             }
+            let logosrc : string;
+            if(herolist[my_hero_id] === undefined){
+                logosrc = "https://steamcdn-a.akamaihd.net/steam/apps/570/header.jpg"
+                console.log(match);
+            }else{
+              logosrc = `https://steamcdn-a.akamaihd.net/apps/dota2/images/heroes/${herolist[my_hero_id].name.replace(/npc_dota_hero_/g,'')}_lg.png`
+            }
             return (
               <React.Fragment key={match.match_id}>
                 <ListItem
@@ -70,7 +77,7 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
                   <ListItemAvatar>
                     <Avatar
                       variant="rounded"
-                      src={`https://steamcdn-a.akamaihd.net/apps/dota2/images/heroes/${herolist[my_hero_id].name.replace(/npc_dota_hero_/g,'')}_lg.png`}
+                      src={logosrc}
                     >
                     </Avatar>
                   </ListItemAvatar>
