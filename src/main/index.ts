@@ -141,7 +141,7 @@ app.whenReady().then(() => {
               apiKeyWindow.close();
               const envPath = path.join(process.cwd(), '.env');
               console.log(envPath);
-              fs.writeFileSync(envPath, `apiKey=${apiKey}\n`, { encoding: 'utf8' });
+              fs.appendFileSync(envPath, `apiKey=${apiKey}\n`, { encoding: 'utf8' });
               process.env.apiKey = apiKey; 
             }
           });
@@ -192,7 +192,7 @@ app.whenReady().then(() => {
   ipcMain.handle("getDotaHistory", async(event,args) => {
     event.preventDefault();
     const { steamid } = args;
-    const url = `https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=${process.env.apiKey}&account_id=${steamid}`;
+    const url = `https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=${process.env.apiKey}&account_id=${steamid}&matches_requested=100`;
     console.log(url)
     let req = await fetch(url)
     if(req.status != 200){

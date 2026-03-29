@@ -19,8 +19,10 @@ const OwnedGames: React.FC<list> = ({ response }) => {
     const { playerData } = usePlayer();
     const steamid = playerData?.steamid;
     const [open, setOpen] = useState(false);
+    const [gameTitle, setGameTitle] = useState("");
     const [modalContent, setModalContent] = useState<React.ReactNode>(<div>Game Details Here</div>);
     const gameClick =(game:Game) => {
+        setGameTitle(game.name);
         switch(game.appid) {
             case 570:
                 (window as any).electronAPI.getDotaHistory({ steamid }).then((res : {result :DotaMatchListProps}) => {
@@ -30,7 +32,7 @@ const OwnedGames: React.FC<list> = ({ response }) => {
                 });
                 break;
             default:
-                setModalContent(<div>{<h1>{game.name}</h1>}<br /><label>Last played: {new Date(game.rtime_last_played * 1000).toLocaleString()}</label></div>);
+                setModalContent(<div><br /><label>Last played: {new Date(game.rtime_last_played * 1000).toLocaleString()}</label></div>);
                 setOpen(true);
         }
     }
@@ -43,8 +45,8 @@ const OwnedGames: React.FC<list> = ({ response }) => {
     });
     response!.games = sortedGames;
     return <div>
-    <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Modal Title</DialogTitle>
+    <Dialog open={open} fullWidth maxWidth="lg" onClose={() => setOpen(false)}>
+        <DialogTitle>{gameTitle}</DialogTitle>
         <DialogContent>
             {modalContent}
         </DialogContent>

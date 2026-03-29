@@ -9,12 +9,13 @@ import {
   ListItemText,
   Avatar,
   Stack,
-  Box
+  Tabs, Tab, Box
 } from '@mui/material';
 import DotaMatchListProps from '../types/dota_match';
 import { usePlayer } from '@renderer/store/playerContext';
 import heroes from '../assets/heroes.json';
-
+import { useState } from 'react';
+import LineChart from './linechart';
 
 const STEAM64_BASE = BigInt(76561197960265728);
 function steamIdToAccountId(steamId64: number): number {
@@ -24,6 +25,59 @@ let herolist = {}
 for(let i=0;i<heroes.length;i++){
     herolist[heroes[i].id] = heroes[i];
 }
+
+type LineChartData = {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+  }[];
+};
+
+export function toGamesPerDayChartData(
+  data: DotaMatchListProps,
+  options?: {
+    accountId?: number;
+    useLocalTime?: boolean;
+    label?: string;
+  }
+): LineChartData {
+  const { accountId, useLocalTime = true, label = 'Games Played' } =
+    options || {};
+
+  const gamesPerDay: Record<string, number> = {};
+
+  for (const match of data.matches ?? []) {
+    // Optional player filter
+    if (accountId) {
+      const hasPlayer = match.players?.some(
+        (p) => p.account_id === accountId
+      );
+      if (!hasPlayer) continue;
+    }
+
+    const dateObj = new Date(match.start_time * 1000);
+
+    const date = useLocalTime
+      ? dateObj.toLocaleDateString('en-CA') // YYYY-MM-DD
+      : dateObj.toISOString().split('T')[0];
+
+    gamesPerDay[date] = (gamesPerDay[date] || 0) + 1;
+  }
+
+  const sortedDates = Object.keys(gamesPerDay).sort();
+
+  return {
+    labels: sortedDates,
+    datasets: [
+      {
+        label,
+        data: sortedDates.map((d) => gamesPerDay[d]),
+      },
+    ],
+  };
+}
+
 const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
   const { playerData } = usePlayer();
   if (!matches || matches.length === 0) {
@@ -42,8 +96,8 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
   };
   
   const account_id = playerData?.steamid ? steamIdToAccountId(playerData.steamid) : playerData?.steamid;
-  return (
-    <Card sx={{ borderRadius: 3, boxShadow: 3, overflow: 'hidden' }}>
+ 
+  const matchCards =(<Card sx={{ borderRadius: 3, boxShadow: 3, overflow: 'hidden' }}>
       <CardContent>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
           Recent Dota 2 Matches {playerData?.personaname} {account_id}
@@ -113,6 +167,46 @@ const DotaMatchList: React.FC<DotaMatchListProps> = ({ matches }) => {
       </CardContent>
     </Card>
   );
+  let playerList = {}
+  matches.map((match) => {
+    for(let i=0; i<match.players.length; i++){
+      console.log(match.players[i]);
+      if(playerList[match.players[i].account_id] === undefined){
+        playerList[match.players[i].account_id] = 1;
+      }else{
+        playerList[match.players[i].account_id] += 1;
+      }
+    }
+  })
+  const chartData = toGamesPerDayChartData({ matches: matches, }, { accountId: account_id });
+  const listOfPlayers = <LineChart datasets={chartData.datasets} labels={chartData.labels} />;
+
+  const [value, setValue] = useState(0);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
+
+  return (
+    <Box>
+      <Tabs value={value} onChange={handleChange} aria-label="matches and players tabs">
+        <Tab label="Match information" />
+        <Tab label="Matches Played Chart" />
+      </Tabs>
+
+      {value === 0 && (
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          {matchCards}
+        </Box>
+      )}
+
+      {value === 1 && (
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          {listOfPlayers}
+        </Box>
+      )}
+    </Box>
+  )
 };
 
 export default DotaMatchList;
