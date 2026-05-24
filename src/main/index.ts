@@ -1,12 +1,27 @@
 import { app, shell, BrowserWindow, ipcMain,dialog  } from 'electron'
+import icon from '../../resources/icon.ico?asset'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import 'dotenv/config'
 import express from "express";
 import openid from "openid";
 import fs from 'fs';
 import path from 'path';
+import portfinder from "portfinder";
+
+
+let PORT: number;
+console.log("icon:", icon);
+(async () => {
+  PORT = await portfinder.getPortPromise({
+    port: 3000
+  });
+
+  // start your app here, after PORT is assigned
+  app.whenReady().then(() => {
+    createWindow();
+  });
+})();
 
 let currentUser = "";
 ipcMain.handle("auth:get-user", () => {
@@ -20,7 +35,7 @@ function createWindow(): void {
     height: 600,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'win32' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -36,10 +51,6 @@ function createWindow(): void {
       }
     });
   });
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -59,7 +70,7 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -71,12 +82,13 @@ app.whenReady().then(() => {
   })
 
   const server = express();
+  const BASE_URL = `http://localhost:${PORT}`;
   let relyingParty = new openid.RelyingParty(
-    "http://localhost:3000/callback", // return URL
-    "http://localhost:3000/",        // realm
-    true,                            // stateless
-    false,                           // strict mode
-    []                               // no extensions
+    `${BASE_URL}/callback`,
+    `${BASE_URL}/`,
+    true,
+    false,
+    []
   );
 
   server.get("/callback", (req, res) => {
@@ -107,8 +119,8 @@ app.whenReady().then(() => {
       }
     });
   });
-  server.listen(3000, () => {
-    console.log("Auth server running at http://localhost:3000");
+  server.listen(PORT, () => {
+    console.log(`Auth server running at http://localhost:${PORT}`);
   });
 
   // IPC test
@@ -159,8 +171,8 @@ app.whenReady().then(() => {
     const steamLoginUrl = new URL("https://steamcommunity.com/openid/login");
     steamLoginUrl.searchParams.set("openid.ns", "http://specs.openid.net/auth/2.0");
     steamLoginUrl.searchParams.set("openid.mode", "checkid_setup");
-    steamLoginUrl.searchParams.set("openid.return_to", "http://localhost:3000/callback");
-    steamLoginUrl.searchParams.set("openid.realm", "http://localhost:3000/");
+    steamLoginUrl.searchParams.set("openid.return_to", `http://localhost:${PORT}/callback`);
+    steamLoginUrl.searchParams.set("openid.realm", `http://localhost:${PORT}/`);
     steamLoginUrl.searchParams.set("openid.identity", "http://specs.openid.net/auth/2.0/identifier_select");
     steamLoginUrl.searchParams.set("openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select");
     const loginWindow = new BrowserWindow({
@@ -203,10 +215,6 @@ app.whenReady().then(() => {
     let res = await req.json();
     return res;
   })
-  
-  
-
-  createWindow()
   
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

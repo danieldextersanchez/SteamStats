@@ -1,5 +1,6 @@
 {
-  "name": "my-app",
+  "name": "steam-stats",
+  "productName": "SteamStats",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -28,11 +29,12 @@
     },
     "files": [
       "dist/**",
+      "out/**",
       "package.json"
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "resources/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -52,20 +54,20 @@
     "electron-updater": "^6.3.9",
     "express": "^5.1.0",
     "openid": "^2.0.13",
+    "portfinder": "^1.0.38",
     "react-chartjs-2": "^5.3.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@types/electron": "^1.6.12",
     "@types/node": "^22.16.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.7.0",
-    "electron": "^37.2.3",
+    "electron": "^42.2.0",
     "electron-builder": "^26.8.1",
-    "electron-vite": "^4.0.0",
+    "electron-vite": "^5.0.0",
     "eslint": "^9.31.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",

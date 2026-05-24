@@ -35,7 +35,7 @@ type Props = {
 const LineChart: React.FC<Props> = ({ labels, datasets }) => {
   const data = {
     labels,
-    datasets: datasets.map((ds, idx) => ({
+    datasets: datasets.map((ds) => ({
       ...ds,
       tension: 0.3, // smooth curves
       borderColor: ds.borderColor || '#3b82f6', // default blue line
